@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import requests
 import json
-from msal import PublicClientApplication
+from msal import PublicClientApplication, ConfidentialClientApplication
 import re
 from dotenv import load_dotenv
 import os
@@ -15,25 +15,25 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your_secret_key')  # Fallback fo
 experimentId = os.getenv('ZEBRA_EXPERIMENT_ID')
 apiUrl = os.getenv('ZEBRA_API_URL')
 
-# Get access token (interactive, for demo only)
+# Get access token (client credentials, for production)
 def get_access_token():
     client_id = os.getenv('AZURE_CLIENT_ID')
+    client_secret = os.getenv('AZURE_CLIENT_SECRET')
     tenant_id = os.getenv('AZURE_TENANT_ID')
-    if not client_id or not tenant_id:
-        raise Exception('AZURE_CLIENT_ID and AZURE_TENANT_ID must be set in environment variables')
-    app_msal = PublicClientApplication(
+    if not client_id or not client_secret or not tenant_id:
+        raise Exception('AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, and AZURE_TENANT_ID must be set in environment variables')
+    authority = f"https://login.microsoftonline.com/{tenant_id}"
+    scope = [os.getenv('AZURE_API_SCOPE', 'api://9021b3a5-1f0d-4fb7-ad3f-d6989f0432d8/.default')]
+    app_msal = ConfidentialClientApplication(
         client_id=client_id,
-        authority=f"https://login.microsoftonline.com/{tenant_id}",
-        enable_broker_on_windows=True
+        client_credential=client_secret,
+        authority=authority
     )
-    result = app_msal.acquire_token_interactive(
-        scopes=[os.getenv('AZURE_API_SCOPE', 'api://9021b3a5-1f0d-4fb7-ad3f-d6989f0432d8/.default')],
-        parent_window_handle=app_msal.CONSOLE_WINDOW_HANDLE
-    )
+    result = app_msal.acquire_token_for_client(scopes=scope)
     if 'access_token' in result:
         return result['access_token']
     else:
-        raise Exception('Failed to get access token')
+        raise Exception(f"Failed to get access token: {result.get('error_description')}")
 
 def call_experiment_api(access_token, search_term):
     headers = {'Authorization': f'Bearer {access_token}','Content-Type':'application/json','Accept':'application/json'}
