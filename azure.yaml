@@ -1,0 +1,8 @@
+name: zebraai-webapp
+metadata:
+  template: azd-python-webapp
+services:
+  zebraai-webapp:
+    project: .
+    language: py
+    host: appservice
