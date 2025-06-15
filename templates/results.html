@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zebra AI - Search Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a237e;
+            --accent: #3949ab;
+            --accent2: #1976d2;
+            --bg: #f4f7fa;
+            --container-bg: #fff;
+            --text: #333;
+            --error: #b71c1c;
+        }
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 0;
+            color: var(--text);
+            transition: background 0.3s, color 0.3s;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--container-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 32px 40px 32px 40px;
+        }
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 32px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #f6f8fc;
+            margin-bottom: 18px;
+            padding: 18px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-start;
+            transition: box-shadow 0.2s;
+            box-shadow: 0 1px 4px rgba(60,72,88,0.04);
+        }
+        li:hover {
+            box-shadow: 0 4px 16px rgba(60,72,88,0.10);
+        }
+        input[type="radio"] {
+            margin-right: 18px;
+            margin-top: 4px;
+            accent-color: var(--accent);
+        }
+        .case-number {
+            font-weight: 700;
+            color: var(--accent);
+            margin-right: 8px;
+        }
+        .case-desc {
+            color: var(--text);
+        }
+        button[type="submit"], .export-btn {
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 32px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 18px;
+            box-shadow: 0 2px 8px rgba(60,72,88,0.08);
+            transition: background 0.2s;
+        }
+        button[type="submit"]:hover, .export-btn:hover {
+            background: linear-gradient(90deg, var(--accent2) 0%, var(--accent) 100%);
+        }
+        .export-btn {
+            margin-left: 16px;
+            padding: 12px 24px;
+        }
+        .no-cases {
+            color: var(--error);
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+        }
+        a {
+            display: inline-block;
+            margin-top: 32px;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        a:hover {
+            color: var(--accent2);
+        }
+        .dark-mode {
+            --primary: #fff;
+            --accent: #90caf9;
+            --accent2: #1976d2;
+            --bg: #181a20;
+            --container-bg: #23263a;
+            --text: #e3e3e3;
+            --error: #ff5252;
+        }
+        .dark-mode h1 {
+            color: #90caf9;
+        }
+        .dark-mode li {
+            background: #23263a;
+        }
+        .dark-mode .case-number {
+            color: #90caf9;
+        }
+        .dark-mode .case-desc {
+            color: #e3e3e3;
+        }
+        .dark-mode .no-cases {
+            color: #ff5252;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 18px 8px; }
+            h1 { font-size: 1.3rem; }
+        }
+        .top-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="main-container">
+        <div class="top-bar">
+            <button class="export-btn" onclick="exportCases()">Export Results</button>
+            <button class="export-btn" onclick="toggleDarkMode()" id="darkModeBtn">Dark Mode</button>
+        </div>
+        <h1>Search Results for '{{ case_number }}'</h1>
+        {% if results.error %}
+            <p class="no-cases">{{ results.error }}<br>{{ results.details }}</p>
+        {% elif results and results['Data'] %}
+            <form method="post" action="/submit" id="caseForm">
+                <ul id="caseList">
+                {% for case in results['Data'] %}
+                    <li>
+                        <input type="radio" name="selected_case" value="{{ case['CaseNumber'] }}" required>
+                        <span class="case-number">{{ case['CaseNumber'] }}</span>
+                        <span class="case-desc">{{ case['Description'] or '' }}</span>
+                    </li>
+                {% endfor %}
+                </ul>
+                <button type="submit">Submit for AI Experiment</button>
+            </form>
+        {% else %}
+            <p class="no-cases">No cases found.</p>
+        {% endif %}
+        <a href="/">&#8592; Back to Search</a>
+    </div>
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            document.getElementById('main-container').classList.toggle('dark-mode');
+            const btn = document.getElementById('darkModeBtn');
+            btn.textContent = document.body.classList.contains('dark-mode') ? 'Light Mode' : 'Dark Mode';
+        }
+        function exportCases() {
+            const cases = [];
+            document.querySelectorAll('#caseList li').forEach(li => {
+                const caseNumber = li.querySelector('.case-number').textContent.trim();
+                const desc = li.querySelector('.case-desc').textContent.trim();
+                cases.push({ 'CaseNumber': caseNumber, 'Description': desc });
+            });
+            const blob = new Blob([JSON.stringify(cases, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cases.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

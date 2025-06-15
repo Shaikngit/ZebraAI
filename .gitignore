@@ -1,0 +1,45 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+env/
+venv/
+ENV/
+VENV/
+.venv/
+
+# Environment variables and secrets
+.env
+
+# Flask instance and database files
+instance/
+*.db
+*.sqlite3
+
+# VS Code settings
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Gunicorn config (if any)
+gunicorn.conf.py
+
+# Azure local settings
+local.settings.json
+
+# Pytest and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.cache/
+pythonclient.py

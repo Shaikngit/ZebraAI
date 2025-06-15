@@ -1,0 +1,17 @@
+# Production requirements for Zebra AI Flask web app
+Flask>=2.2.0
+msal[broker]>=1.23.0
+requests>=2.28.0
+gunicorn>=21.2.0
+markdown>=3.4.0
+python-dotenv>=1.0.0
+# For HTML rendering of markdown tables
+markdown2>=2.4.0
+# For Azure deployment (optional, but recommended)
+azure-identity>=1.15.0
+# For JSON export and parsing (standard lib, but included for clarity)
+# json
+# If you use Jinja2 custom filters or extensions
+Jinja2>=3.1.0
+# If you use any async features (optional)
+# Flask[async]
